@@ -1,11 +1,12 @@
-use pest_derive::Parser;
 use pest::Parser;
+use pest_derive::Parser;
 
 #[derive(Parser)]
 #[grammar = "grammar/grammar.pest"]
-pub struct SQLParser;
+pub struct SqlParser;
 
-pub fn parse_sql(input: &str) -> Result<(), pest::error::Error<Rule>> {
-    let _pairs = SQLParser::parse(Rule::program, input)?;
-    Ok(())
+pub fn parse_sql(
+    input: &str,
+) -> Result<pest::iterators::Pairs<'_, Rule>, pest::error::Error<Rule>> {
+    SqlParser::parse(Rule::sql, input)
 }

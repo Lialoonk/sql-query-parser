@@ -1,6 +1,190 @@
-WHITESPACE = _{ " " | "\t" | "\n" | "\r" }
-COMMENT = _{ "//" ~ (!"\n" ~ ANY)* ~ "\n" }
+WHITESPACE  = _{ " " | "\t" | NEWLINE | COMMENT }
 
-identifier = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
-number = @{ ASCII_DIGIT+ }
-string = @{ "\"" ~ (!"\"" ~ ANY)* ~ "\"" }
+NEWLINE     = _{ "\r\n" | "\n" }
+
+COMMENT     = _{ "--" ~ (!NEWLINE ~ ANY)* }
+
+sql         = { SOI ~ statement ~ EOI }
+
+statement   = { (compound_select | insert_stmt | update_stmt | delete_stmt) ~ ";"? }
+
+compound_select = { select_stmt ~ (union_clause)* }
+
+union_clause = { UNION_KEY ~ ALL_KEY? ~ select_stmt }
+
+select_stmt = { SELECT_KEY ~ projection ~ (FROM_KEY ~ from_item ~ join_clause?)? ~ where_clause? }
+
+insert_stmt = { "INSERT" ~ "INTO" ~ identifier ~ "VALUES" ~ "(" ~ expr ~ ")" }
+
+update_stmt = { UPDATE_KEY ~ identifier ~ SET_KEY ~ set_list ~ where_clause? }
+
+delete_stmt = { DELETE_KEY ~ FROM_KEY ~ identifier ~ where_clause? }
+
+column_list = { "(" ~ identifier_list ~ ")" }
+
+value_rows  = { value_row ~ ("," ~ value_row)* }
+
+value_row   = { "(" ~ expr_list ~ ")" }
+
+set_list    = { set_item ~ ("," ~ set_item)* }
+
+set_item    = { identifier ~ "=" ~ expr }
+
+distinct    = _{ DISTINCT_KEY }
+
+projection  = { "*" | projection_list }
+
+projection_list = { projection_item ~ ("," ~ projection_item)* }
+
+projection_item = { expr ~ (AS_KEY ~ alias)? }
+
+from_item   = { table_factor }
+
+table_factor = { identifier ~ (AS_KEY? ~ identifier)? | "(" ~ compound_select ~ ")" ~ (AS_KEY? ~ identifier)? }
+
+join_clause = { "JOIN" ~ table_factor ~ "ON" ~ expr }
+
+where_clause = { WHERE_KEY ~ expr }
+
+group_by_clause = { GROUP_KEY ~ BY_KEY ~ identifier_list }
+
+having_clause = { HAVING_KEY ~ expr }
+
+order_by_clause = { ORDER_KEY ~ BY_KEY ~ order_list }
+
+limit_clause = { LIMIT_KEY ~ number }
+
+order_list  = { order_item ~ ("," ~ order_item)* }
+
+order_item  = { expr ~ (ASC_KEY | DESC_KEY)? }
+
+identifier_list = { identifier ~ ("," ~ identifier)* }
+
+expr_list   = { expr ~ ("," ~ expr)* }
+
+expr        = { or_expr }
+
+or_expr     = { and_expr ~ (OR_KEY ~ and_expr)* }
+
+and_expr    = { not_expr ~ (AND_KEY ~ not_expr)* }
+
+not_expr    = { NOT_KEY? ~ comparison }
+
+comparison  = { addition ~ comparison_suffix* }
+
+comparison_suffix = {
+    comp_op ~ addition
+  | (NOT_KEY? ~ BETWEEN_KEY ~ addition ~ AND_KEY ~ addition)
+  | (NOT_KEY? ~ IN_KEY ~ "(" ~ in_rhs ~ ")")
+  | (IS_KEY ~ NOT_KEY? ~ NULL_KEY)
+}
+
+in_rhs      = { compound_select | expr_list }
+
+comp_op     = { "=" | "<>" | "!=" | "<=" | ">=" | "<" | ">" | LIKE_KEY | NOT_KEY ~ LIKE_KEY }
+
+addition    = { multiplication ~ (("+" | "-") ~ multiplication)* }
+
+multiplication = { unary ~ (("*" | "/") ~ unary)* }
+
+unary       = { ("+" | "-" )* ~ primary }
+
+primary     = { literal | function_call | column | "(" ~ expr ~ ")" }
+
+function_call = { identifier ~ "(" ~ (expr ~ ("," ~ expr)*)? ~ ")" }
+
+column      = @{ identifier ~ ("." ~ identifier)? }
+
+literal     = { number | string | NULL_KEY | boolean }
+
+boolean     = { TRUE_KEY | FALSE_KEY }
+
+number      = @{ "-"? ~ ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? }
+
+string      = @{ "'" ~ (("\\'" | "\\\\" | !"'" ~ ANY))* ~ "'" }
+
+alias       = @{ identifier }
+
+identifier  = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_" | "$")* }
+
+// Keywords
+
+SELECT_KEY   = _{ "SELECT" | "select" }
+
+FROM_KEY     = _{ "FROM" | "from" }
+
+WHERE_KEY    = _{ "WHERE" | "where" }
+
+GROUP_KEY    = _{ "GROUP" | "group" }
+
+BY_KEY       = _{ "BY" | "by" }
+
+HAVING_KEY   = _{ "HAVING" | "having" }
+
+ORDER_KEY    = _{ "ORDER" | "order" }
+
+LIMIT_KEY    = _{ "LIMIT" | "limit" }
+
+AS_KEY       = _{ "AS" | "as" }
+
+JOIN_KEY     = _{ "JOIN" | "join" }
+
+INNER_KEY    = _{ "INNER" | "inner" }
+
+LEFT_KEY     = _{ "LEFT" | "left" }
+
+RIGHT_KEY    = _{ "RIGHT" | "right" }
+
+FULL_KEY     = _{ "FULL" | "full" }
+
+USING_KEY    = _{ "USING" | "using" }
+
+ON_KEY       = _{ "ON" | "on" }
+
+DISTINCT_KEY = _{ "DISTINCT" | "distinct" }
+
+ASC_KEY      = _{ "ASC" | "asc" }
+
+DESC_KEY     = _{ "DESC" | "desc" }
+
+AND_KEY      = _{ "AND" | "and" }
+
+OR_KEY       = _{ "OR" | "or" }
+
+NOT_KEY      = _{ "NOT" | "not" }
+
+LIKE_KEY     = _{ "LIKE" | "like" }
+
+TRUE_KEY     = _{ "TRUE" | "true" }
+
+FALSE_KEY    = _{ "FALSE" | "false" }
+
+NULL_KEY     = _{ "NULL" | "null" }
+
+INSERT_KEY   = _{ "INSERT" | "insert" }
+
+INTO_KEY     = _{ "INTO" | "into" }
+
+VALUES_KEY   = _{ "VALUES" | "values" }
+
+UPDATE_KEY   = _{ "UPDATE" | "update" }
+
+SET_KEY      = _{ "SET" | "set" }
+
+DELETE_KEY   = _{ "DELETE" | "delete" }
+
+UNION_KEY    = _{ "UNION" | "union" }
+
+ALL_KEY      = _{ "ALL" | "all" }
+
+BETWEEN_KEY  = _{ "BETWEEN" | "between" }
+
+IN_KEY       = _{ "IN" | "in" }
+
+IS_KEY       = _{ "IS" | "is" }
+
+JOIN_TYPE    = _{ (INNER_KEY | LEFT_KEY ~ (SPACE? ~ OUTER_KEY?)?) | RIGHT_KEY | FULL_KEY }
+
+OUTER_KEY    = _{ "OUTER" | "outer" }
+
+SPACE        = _{ " " }
