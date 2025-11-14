@@ -33,18 +33,20 @@ fn main() {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Parse { query, file, format } => {
+        Commands::Parse {
+            query,
+            file,
+            format,
+        } => {
             let sql_query = match (query, file) {
                 (Some(q), None) => q,
-                (None, Some(filename)) => {
-                    match fs::read_to_string(&filename) {
-                        Ok(content) => content,
-                        Err(e) => {
-                            eprintln!("Error reading file '{}': {}", filename, e);
-                            std::process::exit(1);
-                        }
+                (None, Some(filename)) => match fs::read_to_string(&filename) {
+                    Ok(content) => content,
+                    Err(e) => {
+                        eprintln!("Error reading file '{}': {}", filename, e);
+                        std::process::exit(1);
                     }
-                }
+                },
                 (None, None) => {
                     let mut buffer = String::new();
                     match io::stdin().read_to_string(&mut buffer) {
@@ -67,47 +69,44 @@ fn main() {
             }
 
             match format.as_str() {
-                "parse" => {
-                    match sql_query_parser::parse_sql(&sql_query) {
-                        Ok(pairs) => {
-                            println!("Parse tree:\n {:#?}", pairs);
-                        }
-                        Err(error) => {
-                            eprintln!("Failed to parse SQL query: {}", error);
-                            std::process::exit(1);
-                        }
+                "parse" => match sql_query_parser::parse_sql(&sql_query) {
+                    Ok(pairs) => {
+                        println!("Parse tree:\n {:#?}", pairs);
                     }
-                }
-                "analyze" => {
-                    match sql_query_parser::analyze_sql(&sql_query) {
-                        Ok(metadata) => {
-                            println!("SQL Query Analysis:");
-                            println!("Tables: {:?}", metadata.tables);
-                            println!("Columns: {:?}", metadata.columns);
-                            println!("Aliases: {:?}", metadata.aliases);
-                            println!("Functions: {:?}", metadata.functions);
-                            println!("Aggregates: {:?}", metadata.aggregates);
-                            println!("Joins: {:?}", metadata.joins);
-                        }
-                        Err(error) => {
-                            eprintln!("Failed to analyze SQL query: {}", error);
-                            std::process::exit(1);
-                        }
+                    Err(error) => {
+                        eprintln!("Failed to parse SQL query: {}", error);
+                        std::process::exit(1);
                     }
-                }
-                "json" => {
-                    match sql_query_parser::analyze_sql_json(&sql_query) {
-                        Ok(json) => {
-                            println!("{}", json);
-                        }
-                        Err(error) => {
-                            eprintln!("Failed to generate JSON: {}", error);
-                            std::process::exit(1);
-                        }
+                },
+                "analyze" => match sql_query_parser::analyze_sql(&sql_query) {
+                    Ok(metadata) => {
+                        println!("SQL Query Analysis:");
+                        println!("Tables: {:?}", metadata.tables);
+                        println!("Columns: {:?}", metadata.columns);
+                        println!("Aliases: {:?}", metadata.aliases);
+                        println!("Functions: {:?}", metadata.functions);
+                        println!("Aggregates: {:?}", metadata.aggregates);
+                        println!("Joins: {:?}", metadata.joins);
                     }
-                }
+                    Err(error) => {
+                        eprintln!("Failed to analyze SQL query: {}", error);
+                        std::process::exit(1);
+                    }
+                },
+                "json" => match sql_query_parser::analyze_sql_json(&sql_query) {
+                    Ok(json) => {
+                        println!("{}", json);
+                    }
+                    Err(error) => {
+                        eprintln!("Failed to generate JSON: {}", error);
+                        std::process::exit(1);
+                    }
+                },
                 _ => {
-                    eprintln!("Error: Invalid format '{}'. Use 'parse', 'analyze', or 'json'", format);
+                    eprintln!(
+                        "Error: Invalid format '{}'. Use 'parse', 'analyze', or 'json'",
+                        format
+                    );
                     std::process::exit(1);
                 }
             }
@@ -124,7 +123,9 @@ fn main() {
 /// Display help information about available commands and usage
 fn print_help() {
     println!("SQL Query Parser v0.1.0");
-    println!("A comprehensive tool for parsing and analyzing SQL queries with metadata extraction.");
+    println!(
+        "A comprehensive tool for parsing and analyzing SQL queries with metadata extraction."
+    );
     println!();
     println!("USAGE:");
     println!("    sql-query-parser <COMMAND>");

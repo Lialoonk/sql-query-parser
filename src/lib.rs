@@ -11,7 +11,7 @@ pub use pest::iterators::Pairs;
 pub struct SqlParser;
 
 /// Metadata extracted from SQL query parsing containing tables, columns, functions, etc.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct QueryMetadata {
     /// Set of table names referenced in the query
     pub tables: HashSet<String>,
@@ -40,19 +40,6 @@ pub struct JoinInfo {
     pub condition: String,
 }
 
-impl Default for QueryMetadata {
-    fn default() -> Self {
-        Self {
-            tables: HashSet::new(),
-            columns: HashSet::new(),
-            aliases: HashMap::new(),
-            functions: HashSet::new(),
-            aggregates: HashSet::new(),
-            joins: Vec::new(),
-        }
-    }
-}
-
 /// Parse SQL query and return the parse tree
 ///
 /// # Arguments
@@ -60,6 +47,7 @@ impl Default for QueryMetadata {
 ///
 /// # Returns
 /// Parse tree pairs on success, or parsing error
+#[allow(clippy::result_large_err)]
 pub fn parse_sql(
     input: &str,
 ) -> Result<pest::iterators::Pairs<'_, Rule>, pest::error::Error<Rule>> {
@@ -73,6 +61,7 @@ pub fn parse_sql(
 ///
 /// # Returns
 /// QueryMetadata struct with extracted information, or parsing error
+#[allow(clippy::result_large_err)]
 pub fn analyze_sql(input: &str) -> Result<QueryMetadata, pest::error::Error<Rule>> {
     let pairs = SqlParser::parse(Rule::sql, input)?;
     let mut metadata = QueryMetadata::default();
@@ -89,6 +78,7 @@ pub fn analyze_sql(input: &str) -> Result<QueryMetadata, pest::error::Error<Rule
 ///
 /// # Returns
 /// JSON string with query metadata, or parsing/serialization error
+#[allow(clippy::result_large_err)]
 pub fn analyze_sql_json(input: &str) -> Result<String, pest::error::Error<Rule>> {
     let metadata = analyze_sql(input)?;
     let json = serde_json::to_string_pretty(&metadata).map_err(|e| {
@@ -250,7 +240,10 @@ fn analyze_where_clause(pairs: pest::iterators::Pairs<Rule>, metadata: &mut Quer
 }
 
 /// Extract metadata from expressions (columns, functions, tables)
-fn analyze_expression_for_metadata(pairs: pest::iterators::Pairs<Rule>, metadata: &mut QueryMetadata) {
+fn analyze_expression_for_metadata(
+    pairs: pest::iterators::Pairs<Rule>,
+    metadata: &mut QueryMetadata,
+) {
     for pair in pairs {
         match pair.as_rule() {
             Rule::column => {
