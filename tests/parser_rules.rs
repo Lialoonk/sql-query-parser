@@ -188,6 +188,8 @@ fn all_grammar_rules_test() -> Result<()> {
         (Rule::JOIN_TYPE, "LEFT OUTER"),
         (Rule::OUTER_KEY, "OUTER"),
         (Rule::SPACE, " "),
+        (Rule::RESERVED_KEYWORD, "SELECT"),
+        (Rule::alias_identifier, "users"),
     ];
 
     for (rule, input) in cases {

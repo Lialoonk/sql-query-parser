@@ -5,25 +5,38 @@ use std::collections::{HashMap, HashSet};
 
 pub use pest::iterators::Pairs;
 
+/// Main SQL parser struct using pest grammar
 #[derive(Parser)]
 #[grammar = "grammar/grammar.pest"]
 pub struct SqlParser;
 
+/// Metadata extracted from SQL query parsing containing tables, columns, functions, etc.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct QueryMetadata {
+    /// Set of table names referenced in the query
     pub tables: HashSet<String>,
+    /// Set of column names referenced in the query
     pub columns: HashSet<String>,
+    /// Map of table/column aliases (alias -> original name)
     pub aliases: HashMap<String, String>,
+    /// Set of function names used in the query
     pub functions: HashSet<String>,
+    /// Set of aggregate function names (SUM, COUNT, AVG, etc.)
     pub aggregates: HashSet<String>,
+    /// List of JOIN operations with their details
     pub joins: Vec<JoinInfo>,
 }
 
+/// Information about a JOIN operation in the query
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct JoinInfo {
+    /// Type of JOIN (INNER, LEFT, RIGHT, FULL, etc.)
     pub join_type: Option<String>,
+    /// Name of the joined table
     pub table: String,
+    /// Optional alias for the joined table
     pub alias: Option<String>,
+    /// ON condition for the JOIN
     pub condition: String,
 }
 
@@ -40,12 +53,26 @@ impl Default for QueryMetadata {
     }
 }
 
+/// Parse SQL query and return the parse tree
+///
+/// # Arguments
+/// * `input` - SQL query string to parse
+///
+/// # Returns
+/// Parse tree pairs on success, or parsing error
 pub fn parse_sql(
     input: &str,
 ) -> Result<pest::iterators::Pairs<'_, Rule>, pest::error::Error<Rule>> {
     SqlParser::parse(Rule::sql, input)
 }
 
+/// Analyze SQL query and extract metadata (tables, columns, functions, etc.)
+///
+/// # Arguments
+/// * `input` - SQL query string to analyze
+///
+/// # Returns
+/// QueryMetadata struct with extracted information, or parsing error
 pub fn analyze_sql(input: &str) -> Result<QueryMetadata, pest::error::Error<Rule>> {
     let pairs = SqlParser::parse(Rule::sql, input)?;
     let mut metadata = QueryMetadata::default();
@@ -55,6 +82,13 @@ pub fn analyze_sql(input: &str) -> Result<QueryMetadata, pest::error::Error<Rule
     Ok(metadata)
 }
 
+/// Analyze SQL query and return metadata as pretty-printed JSON
+///
+/// # Arguments
+/// * `input` - SQL query string to analyze
+///
+/// # Returns
+/// JSON string with query metadata, or parsing/serialization error
 pub fn analyze_sql_json(input: &str) -> Result<String, pest::error::Error<Rule>> {
     let metadata = analyze_sql(input)?;
     let json = serde_json::to_string_pretty(&metadata).map_err(|e| {
@@ -68,6 +102,7 @@ pub fn analyze_sql_json(input: &str) -> Result<String, pest::error::Error<Rule>>
     Ok(json)
 }
 
+/// Recursively analyze parse tree pairs and extract metadata
 fn analyze_pairs(pairs: pest::iterators::Pairs<Rule>, metadata: &mut QueryMetadata) {
     for pair in pairs {
         match pair.as_rule() {
@@ -81,6 +116,7 @@ fn analyze_pairs(pairs: pest::iterators::Pairs<Rule>, metadata: &mut QueryMetada
     }
 }
 
+/// Analyze SELECT statement components
 fn analyze_select_stmt(pairs: pest::iterators::Pairs<Rule>, metadata: &mut QueryMetadata) {
     for pair in pairs {
         match pair.as_rule() {
@@ -93,6 +129,7 @@ fn analyze_select_stmt(pairs: pest::iterators::Pairs<Rule>, metadata: &mut Query
     }
 }
 
+/// Analyze FROM clause items
 fn analyze_from_item(pairs: pest::iterators::Pairs<Rule>, metadata: &mut QueryMetadata) {
     for pair in pairs {
         if let Rule::table_factor = pair.as_rule() {
@@ -101,6 +138,7 @@ fn analyze_from_item(pairs: pest::iterators::Pairs<Rule>, metadata: &mut QueryMe
     }
 }
 
+/// Analyze table references and their aliases
 fn analyze_table_factor(pairs: pest::iterators::Pairs<Rule>, metadata: &mut QueryMetadata) {
     let mut table_name = None;
     let mut alias = None;
@@ -128,6 +166,7 @@ fn analyze_table_factor(pairs: pest::iterators::Pairs<Rule>, metadata: &mut Quer
     }
 }
 
+/// Analyze JOIN clauses and extract join information
 fn analyze_join_clause(pairs: pest::iterators::Pairs<Rule>, metadata: &mut QueryMetadata) {
     let mut join_type = None;
     let mut table = None;
@@ -175,6 +214,7 @@ fn analyze_join_clause(pairs: pest::iterators::Pairs<Rule>, metadata: &mut Query
     }
 }
 
+/// Analyze SELECT projection (column list or *)
 fn analyze_projection(pairs: pest::iterators::Pairs<Rule>, metadata: &mut QueryMetadata) {
     for pair in pairs {
         match pair.as_rule() {
@@ -190,6 +230,7 @@ fn analyze_projection(pairs: pest::iterators::Pairs<Rule>, metadata: &mut QueryM
     }
 }
 
+/// Analyze individual projection items (columns, expressions)
 fn analyze_projection_item(pairs: pest::iterators::Pairs<Rule>, metadata: &mut QueryMetadata) {
     for pair in pairs {
         match pair.as_rule() {
@@ -199,6 +240,7 @@ fn analyze_projection_item(pairs: pest::iterators::Pairs<Rule>, metadata: &mut Q
     }
 }
 
+/// Analyze WHERE clause expressions
 fn analyze_where_clause(pairs: pest::iterators::Pairs<Rule>, metadata: &mut QueryMetadata) {
     for pair in pairs {
         if let Rule::expr = pair.as_rule() {
@@ -207,6 +249,7 @@ fn analyze_where_clause(pairs: pest::iterators::Pairs<Rule>, metadata: &mut Quer
     }
 }
 
+/// Extract metadata from expressions (columns, functions, tables)
 fn analyze_expression_for_metadata(pairs: pest::iterators::Pairs<Rule>, metadata: &mut QueryMetadata) {
     for pair in pairs {
         match pair.as_rule() {
@@ -232,6 +275,7 @@ fn analyze_expression_for_metadata(pairs: pest::iterators::Pairs<Rule>, metadata
     }
 }
 
+/// Analyze INSERT statements
 fn analyze_insert_stmt(pairs: pest::iterators::Pairs<Rule>, metadata: &mut QueryMetadata) {
     for pair in pairs {
         match pair.as_rule() {
@@ -246,6 +290,7 @@ fn analyze_insert_stmt(pairs: pest::iterators::Pairs<Rule>, metadata: &mut Query
     }
 }
 
+/// Analyze UPDATE statements
 fn analyze_update_stmt(pairs: pest::iterators::Pairs<Rule>, metadata: &mut QueryMetadata) {
     for pair in pairs {
         match pair.as_rule() {
@@ -263,6 +308,7 @@ fn analyze_update_stmt(pairs: pest::iterators::Pairs<Rule>, metadata: &mut Query
     }
 }
 
+/// Analyze DELETE statements
 fn analyze_delete_stmt(pairs: pest::iterators::Pairs<Rule>, metadata: &mut QueryMetadata) {
     for pair in pairs {
         match pair.as_rule() {
@@ -277,6 +323,7 @@ fn analyze_delete_stmt(pairs: pest::iterators::Pairs<Rule>, metadata: &mut Query
     }
 }
 
+/// Analyze SET clause in UPDATE statements
 fn analyze_set_list(pairs: pest::iterators::Pairs<Rule>, metadata: &mut QueryMetadata) {
     for pair in pairs {
         if let Rule::set_item = pair.as_rule() {
@@ -285,6 +332,7 @@ fn analyze_set_list(pairs: pest::iterators::Pairs<Rule>, metadata: &mut QueryMet
     }
 }
 
+/// Analyze individual SET items (column = value)
 fn analyze_set_item(pairs: pest::iterators::Pairs<Rule>, metadata: &mut QueryMetadata) {
     for pair in pairs {
         match pair.as_rule() {

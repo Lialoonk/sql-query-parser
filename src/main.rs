@@ -121,6 +121,7 @@ fn main() {
     }
 }
 
+/// Display help information about available commands and usage
 fn print_help() {
     println!("SQL Query Parser v0.1.0");
     println!("A comprehensive tool for parsing and analyzing SQL queries with metadata extraction.");
@@ -148,6 +149,7 @@ fn print_help() {
     println!("For more information, visit: https://github.com/Lialoonk/sql-query-parser");
 }
 
+/// Display project credits and information
 fn print_credits() {
     println!("SQL Query Parser v0.1.0");
     println!();
