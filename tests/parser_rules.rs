@@ -15,6 +15,76 @@ fn assert_rule_fails(rule: Rule, input: &str) {
 }
 
 #[test]
+fn test_sql_analysis() -> Result<()> {
+    let query = "SELECT SUM(price) FROM orders";
+    let metadata = sql_query_parser::analyze_sql(query)?;
+
+    assert_eq!(metadata.tables.len(), 1);
+    assert!(metadata.tables.contains("orders"));
+    assert_eq!(metadata.functions.len(), 1);
+    assert!(metadata.functions.contains("SUM"));
+    assert_eq!(metadata.aggregates.len(), 1);
+    assert!(metadata.aggregates.contains("SUM"));
+    assert_eq!(metadata.joins.len(), 0);
+
+    let json = sql_query_parser::analyze_sql_json(query)?;
+    assert!(json.contains("SUM"));
+    assert!(json.contains("orders"));
+
+    let parsed: serde_json::Value = serde_json::from_str(&json)?;
+    assert_eq!(parsed["tables"][0], "orders");
+    assert_eq!(parsed["functions"][0], "SUM");
+    assert_eq!(parsed["aggregates"][0], "SUM");
+
+    Ok(())
+}
+
+#[test]
+fn test_alias_analysis() -> Result<()> {
+    let query = "SELECT name FROM users u";
+    let metadata = sql_query_parser::analyze_sql(query)?;
+
+    assert!(metadata.tables.contains("users"));
+    assert_eq!(metadata.aliases["u"], "users");
+
+    Ok(())
+}
+
+#[test]
+fn test_insert_analysis() -> Result<()> {
+    let query = "INSERT INTO users VALUES (1)";
+    let metadata = sql_query_parser::analyze_sql(query)?;
+
+    assert!(metadata.tables.contains("users"));
+
+    Ok(())
+}
+
+#[test]
+fn test_update_analysis() -> Result<()> {
+    let query = "UPDATE users SET name = 'John', age = 25 WHERE id = 1";
+    let metadata = sql_query_parser::analyze_sql(query)?;
+
+    assert!(metadata.tables.contains("users"));
+    assert!(metadata.columns.contains("name"));
+    assert!(metadata.columns.contains("age"));
+    assert!(metadata.columns.contains("id"));
+
+    Ok(())
+}
+
+#[test]
+fn test_delete_analysis() -> Result<()> {
+    let query = "DELETE FROM users WHERE id = 1";
+    let metadata = sql_query_parser::analyze_sql(query)?;
+
+    assert!(metadata.tables.contains("users"));
+    assert!(metadata.columns.contains("id"));
+
+    Ok(())
+}
+
+#[test]
 fn all_grammar_rules_test() -> Result<()> {
     let cases = [
         (Rule::WHITESPACE, " "),

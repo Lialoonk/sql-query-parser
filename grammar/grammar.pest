@@ -40,7 +40,7 @@ projection_item = { expr ~ (AS_KEY ~ alias)? }
 
 from_item   = { table_factor }
 
-table_factor = { identifier ~ (AS_KEY? ~ identifier)? | "(" ~ compound_select ~ ")" ~ (AS_KEY? ~ identifier)? }
+table_factor = { identifier ~ (AS_KEY? ~ alias_identifier)? | "(" ~ compound_select ~ ")" ~ (AS_KEY? ~ alias_identifier)? }
 
 join_clause = { "JOIN" ~ table_factor ~ "ON" ~ expr }
 
@@ -103,9 +103,18 @@ number      = @{ "-"? ~ ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? }
 
 string      = @{ "'" ~ (("\\'" | "\\\\" | !"'" ~ ANY))* ~ "'" }
 
-alias       = @{ identifier }
+alias       = @{ alias_identifier }
+
+alias_identifier = @{ !RESERVED_KEYWORD ~ identifier }
 
 identifier  = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_" | "$")* }
+
+RESERVED_KEYWORD = _{
+    SELECT_KEY | FROM_KEY | WHERE_KEY | GROUP_KEY | BY_KEY | HAVING_KEY | ORDER_KEY | LIMIT_KEY |
+    AS_KEY | JOIN_KEY | ON_KEY | INSERT_KEY | INTO_KEY | VALUES_KEY | UPDATE_KEY | SET_KEY |
+    DELETE_KEY | UNION_KEY | ALL_KEY | DISTINCT_KEY | AND_KEY | OR_KEY | NOT_KEY | LIKE_KEY |
+    TRUE_KEY | FALSE_KEY | NULL_KEY
+}
 
 // Keywords
 
