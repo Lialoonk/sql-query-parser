@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
-use pest::Parser;
 use lialoonk_sql_query_parser::{Rule, SqlParser};
+use pest::Parser;
 
 fn assert_rule(rule: Rule, input: &str) -> Result<()> {
     SqlParser::parse(rule, input)

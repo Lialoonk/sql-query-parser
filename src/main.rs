@@ -2,7 +2,7 @@ use clap::{Parser, Subcommand};
 use std::fs;
 use std::io::{self, Read};
 
-use lialoonk_sql_query_parser::{parse_sql, analyze_sql, analyze_sql_json};
+use lialoonk_sql_query_parser::{analyze_sql, analyze_sql_json, parse_sql};
 
 /// SQL Query Parser - A tool for parsing and analyzing SQL queries
 #[derive(Parser)]
