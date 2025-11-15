@@ -3,6 +3,11 @@ name = "sql-query-parser"
 version = "0.1.0"
 edition = "2021"
 description = "A comprehensive SQL query parser and analyzer built with Rust, providing detailed metadata extraction and JSON serialization of parsed SQL statements."
+license = "MIT"
+repository = "https://github.com/Lialoonk/sql-query-parser"
+homepage = "https://github.com/Lialoonk/sql-query-parser"
+keywords = ["sql", "parser", "analyzer", "database", "query"]
+categories = ["parsing", "database"]
 
 [dependencies]
 pest = "2.8"
