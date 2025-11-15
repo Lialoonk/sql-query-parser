@@ -2,9 +2,11 @@ use clap::{Parser, Subcommand};
 use std::fs;
 use std::io::{self, Read};
 
+use lialoonk_sql_query_parser::{parse_sql, analyze_sql, analyze_sql_json};
+
 /// SQL Query Parser - A tool for parsing and analyzing SQL queries
 #[derive(Parser)]
-#[command(name = "sql-query-parser")]
+#[command(name = "lialoonk-sql-query-parser")]
 #[command(about = "Parse and analyze SQL queries with metadata extraction")]
 #[command(version = "0.1.0")]
 #[command(disable_help_subcommand = true)]
@@ -69,7 +71,7 @@ fn main() {
             }
 
             match format.as_str() {
-                "parse" => match sql_query_parser::parse_sql(&sql_query) {
+                "parse" => match parse_sql(&sql_query) {
                     Ok(pairs) => {
                         println!("Parse tree:\n {:#?}", pairs);
                     }
@@ -78,7 +80,7 @@ fn main() {
                         std::process::exit(1);
                     }
                 },
-                "analyze" => match sql_query_parser::analyze_sql(&sql_query) {
+                "analyze" => match analyze_sql(&sql_query) {
                     Ok(metadata) => {
                         println!("SQL Query Analysis:");
                         println!("Tables: {:?}", metadata.tables);
@@ -93,7 +95,7 @@ fn main() {
                         std::process::exit(1);
                     }
                 },
-                "json" => match sql_query_parser::analyze_sql_json(&sql_query) {
+                "json" => match analyze_sql_json(&sql_query) {
                     Ok(json) => {
                         println!("{}", json);
                     }
@@ -122,13 +124,13 @@ fn main() {
 
 /// Display help information about available commands and usage
 fn print_help() {
-    println!("SQL Query Parser v0.1.0");
+    println!("Lialoonk SQL Query Parser v0.1.0");
     println!(
         "A comprehensive tool for parsing and analyzing SQL queries with metadata extraction."
     );
     println!();
     println!("USAGE:");
-    println!("    sql-query-parser <COMMAND>");
+    println!("    lialoonk-sql-query-parser <COMMAND>");
     println!();
     println!("COMMANDS:");
     println!("    parse    Parse a SQL query and display results");
@@ -141,18 +143,18 @@ fn print_help() {
     println!("        --format <FORMAT>  Output format: parse, analyze, or json [default: parse]");
     println!();
     println!("EXAMPLES:");
-    println!("    sql-query-parser parse --query \"SELECT * FROM users\"");
-    println!("    sql-query-parser parse --file query.sql --format analyze");
-    println!("    echo \"SELECT * FROM users\" | sql-query-parser parse --format json");
-    println!("    sql-query-parser help");
-    println!("    sql-query-parser credits");
+    println!("    lialoonk-sql-query-parser parse --query \"SELECT * FROM users\"");
+    println!("    lialoonk-sql-query-parser parse --file query.sql --format analyze");
+    println!("    echo \"SELECT * FROM users\" | lialoonk-sql-query-parser parse --format json");
+    println!("    lialoonk-sql-query-parser help");
+    println!("    lialoonk-sql-query-parser credits");
     println!();
     println!("For more information, visit: https://github.com/Lialoonk/sql-query-parser");
 }
 
 /// Display project credits and information
 fn print_credits() {
-    println!("SQL Query Parser v0.1.0");
+    println!("Lialoonk SQL Query Parser v0.1.0");
     println!();
     println!("A comprehensive SQL parsing and analysis tool built with Rust.");
     println!();

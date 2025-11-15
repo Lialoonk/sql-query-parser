@@ -45,25 +45,25 @@ The parser supports the following SQL constructs:
 
 ```bash
 # Parse SQL from command line
-sql-query-parser parse --query "SELECT * FROM users"
+lialoonk-sql-query-parser parse --query "SELECT * FROM users"
 
 # Analyze query metadata
-sql-query-parser parse --query "SELECT SUM(price) FROM orders" --format analyze
+lialoonk-sql-query-parser parse --query "SELECT SUM(price) FROM orders" --format analyze
 
 # Parse from file
-sql-query-parser parse --file query.sql --format json
+lialoonk-sql-query-parser parse --file query.sql --format json
 
 # Display help
-sql-query-parser help
+lialoonk-sql-query-parser help
 
 # Display project credits
-sql-query-parser credits
+lialoonk-sql-query-parser credits
 ```
 
 ### Library Usage
 
 ```rust
-use sql_query_parser::{parse_sql, analyze_sql, analyze_sql_json};
+use lialoonk_sql_query_parser::{parse_sql, analyze_sql, analyze_sql_json};
 
 let sql = "SELECT id, name FROM users WHERE id = 1";
 

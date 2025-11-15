@@ -1,5 +1,5 @@
 [package]
-name = "sql-query-parser"
+name = "lialoonk-sql-query-parser"
 version = "0.1.0"
 edition = "2021"
 description = "A comprehensive SQL query parser and analyzer built with Rust, providing detailed metadata extraction and JSON serialization of parsed SQL statements."

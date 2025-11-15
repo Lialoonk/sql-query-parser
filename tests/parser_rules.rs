@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use pest::Parser;
-use sql_query_parser::{Rule, SqlParser};
+use lialoonk_sql_query_parser::{Rule, SqlParser};
 
 fn assert_rule(rule: Rule, input: &str) -> Result<()> {
     SqlParser::parse(rule, input)
@@ -17,7 +17,7 @@ fn assert_rule_fails(rule: Rule, input: &str) {
 #[test]
 fn test_sql_analysis() -> Result<()> {
     let query = "SELECT SUM(price) FROM orders";
-    let metadata = sql_query_parser::analyze_sql(query)?;
+    let metadata = lialoonk_sql_query_parser::analyze_sql(query)?;
 
     assert_eq!(metadata.tables.len(), 1);
     assert!(metadata.tables.contains("orders"));
@@ -27,7 +27,7 @@ fn test_sql_analysis() -> Result<()> {
     assert!(metadata.aggregates.contains("SUM"));
     assert_eq!(metadata.joins.len(), 0);
 
-    let json = sql_query_parser::analyze_sql_json(query)?;
+    let json = lialoonk_sql_query_parser::analyze_sql_json(query)?;
     assert!(json.contains("SUM"));
     assert!(json.contains("orders"));
 
@@ -42,7 +42,7 @@ fn test_sql_analysis() -> Result<()> {
 #[test]
 fn test_alias_analysis() -> Result<()> {
     let query = "SELECT name FROM users u";
-    let metadata = sql_query_parser::analyze_sql(query)?;
+    let metadata = lialoonk_sql_query_parser::analyze_sql(query)?;
 
     assert!(metadata.tables.contains("users"));
     assert_eq!(metadata.aliases["u"], "users");
@@ -53,7 +53,7 @@ fn test_alias_analysis() -> Result<()> {
 #[test]
 fn test_insert_analysis() -> Result<()> {
     let query = "INSERT INTO users VALUES (1)";
-    let metadata = sql_query_parser::analyze_sql(query)?;
+    let metadata = lialoonk_sql_query_parser::analyze_sql(query)?;
 
     assert!(metadata.tables.contains("users"));
 
@@ -63,7 +63,7 @@ fn test_insert_analysis() -> Result<()> {
 #[test]
 fn test_update_analysis() -> Result<()> {
     let query = "UPDATE users SET name = 'John', age = 25 WHERE id = 1";
-    let metadata = sql_query_parser::analyze_sql(query)?;
+    let metadata = lialoonk_sql_query_parser::analyze_sql(query)?;
 
     assert!(metadata.tables.contains("users"));
     assert!(metadata.columns.contains("name"));
@@ -76,7 +76,7 @@ fn test_update_analysis() -> Result<()> {
 #[test]
 fn test_delete_analysis() -> Result<()> {
     let query = "DELETE FROM users WHERE id = 1";
-    let metadata = sql_query_parser::analyze_sql(query)?;
+    let metadata = lialoonk_sql_query_parser::analyze_sql(query)?;
 
     assert!(metadata.tables.contains("users"));
     assert!(metadata.columns.contains("id"));
