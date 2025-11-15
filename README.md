@@ -222,6 +222,8 @@ INSERT INTO products (name, price, category) VALUES ('Laptop', 999.99, 'Electron
 }
 ```
 
-## Repository
+## Links
 
-[https://github.com/Lialoonk/sql-query-parser](https://github.com/Lialoonk/sql-query-parser)
+- **Repository**: [https://github.com/Lialoonk/sql-query-parser](https://github.com/Lialoonk/sql-query-parser)
+- **Crates.io**: [https://crates.io/crates/lialoonk-sql-query-parser](https://crates.io/crates/lialoonk-sql-query-parser)
+- **Documentation**: [https://docs.rs/lialoonk-sql-query-parser](https://docs.rs/lialoonk-sql-query-parser)
